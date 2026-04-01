@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: acme-hse-backend
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn -w 4 -k uvicorn.workers.UvicornWorker app.main:app --bind 0.0.0.0:$PORT
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: acme-hse-db
+          property: connectionString
+      - key: ALLOWED_ORIGINS
+        value: "*" # Update this to your Vercel URL once deployed
+
+databases:
+  - name: acme-hse-db
+    plan: free
