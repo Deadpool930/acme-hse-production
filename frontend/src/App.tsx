@@ -3,14 +3,21 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import EventSubmissionForm from './components/EventSubmissionForm';
 import DashboardTrends from './components/DashboardTrends';
 import Login from './pages/Login';
-import { LayoutDashboard, ShieldCheck, Activity, LogOut, User } from 'lucide-react';
+import { LayoutDashboard, ShieldCheck, Activity, LogOut, User, Users } from 'lucide-react';
+import StaffManagement from './pages/StaffManagement';
 import { AuthProvider, useAuth } from './context/AuthContext';
 
 const queryClient = new QueryClient();
 
 function AppContent() {
-  const [view, setView] = useState<'dashboard' | 'report'>('dashboard');
+  const [view, setView] = useState<'dashboard' | 'report' | 'management'>('dashboard');
   const { user, isAuthenticated, handleLogout, checkAuth } = useAuth();
+
+  const menuItems = [
+    { id: 'dashboard', icon: LayoutDashboard, label: 'Dashboard', access: [1, 2] },
+    { id: 'report', icon: Activity, label: 'Incident Report', access: [1, 2, 3, 4] },
+    { id: 'management', icon: Users, label: 'Staff Management', access: [1] },
+  ];
 
   if (isAuthenticated === null) {
     return (
@@ -43,23 +50,22 @@ function AppContent() {
           </div>
 
           <nav className="flex flex-col gap-2">
-            {[
-              { id: 'dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-              { id: 'report', icon: Activity, label: 'Incident Report' },
-            ].map((item) => (
-              <button
-                key={item.id}
-                onClick={() => setView(item.id as any)}
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
-                  view === item.id 
-                    ? 'bg-accent text-slate-900 font-semibold shadow-lg shadow-accent/10' 
-                    : 'hover:bg-slate-800 text-slate-400 hover:text-slate-200'
-                }`}
-              >
-                <item.icon size={20} />
-                {item.label}
-              </button>
-            ))}
+            {menuItems
+              .filter(item => item.access.includes(user?.role_level || 3))
+              .map((item) => (
+                <button
+                  key={item.id}
+                  onClick={() => setView(item.id as any)}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
+                    view === item.id 
+                      ? 'bg-accent text-slate-900 font-semibold shadow-lg shadow-accent/10' 
+                      : 'hover:bg-slate-800 text-slate-400 hover:text-slate-200'
+                  }`}
+                >
+                  <item.icon size={20} />
+                  {item.label}
+                </button>
+              ))}
           </nav>
         </div>
 
@@ -71,7 +77,7 @@ function AppContent() {
             <div className="overflow-hidden">
               <p className="text-sm font-semibold truncate text-white">{user?.fullname || 'Authorized User'}</p>
               <p className="text-[10px] text-slate-500 uppercase tracking-wider font-bold">
-                {user?.role_id === 1 ? 'Corporate' : user?.role_id === 2 ? 'Plant Head' : 'Auditor'}
+                {user?.role_name || 'Authorized'}
               </p>
             </div>
           </div>
@@ -105,7 +111,13 @@ function AppContent() {
         </header>
 
         <section className="max-w-5xl">
-          {view === 'dashboard' ? <DashboardTrends /> : <EventSubmissionForm />}
+          {view === 'dashboard' ? (
+            <DashboardTrends />
+          ) : view === 'report' ? (
+            <EventSubmissionForm />
+          ) : (
+            <StaffManagement />
+          )}
         </section>
       </main>
     </div>
