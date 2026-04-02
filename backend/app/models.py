@@ -17,6 +17,7 @@ class Role(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(50), unique=True, index=True)
     description = Column(Text)
+    level = Column(Integer, default=3) # 1: Corporate, 2: Regional, 3: Site, 4: External
     created_at = Column(DateTime, default=datetime.utcnow)
     
     users = relationship("User", back_populates="role")
@@ -29,6 +30,7 @@ class User(Base):
     hashed_password = Column(String(255), nullable=False)
     role_id = Column(Integer, ForeignKey("roles.id"))
     is_active = Column(Boolean, default=True)
+    region_assigned = Column(String(50), nullable=True) # For Regional/Cluster leads
     created_at = Column(DateTime, default=datetime.utcnow)
     
     role = relationship("Role", back_populates="users")
