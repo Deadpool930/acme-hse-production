@@ -6,7 +6,27 @@ from .auth.utils import get_password_hash
 
 async def seed_data():
     async with AsyncSessionLocal() as db:
-        # 1. Seed Plants
+        # 1. Seed Hierarchical Roles (Level based: 1-Corporate, 2-Regional, 3-Site, 4-Audit)
+        roles_data = [
+            {"id": 1, "name": "Corporate", "level": 1, "description": "Full access to all sites and management"},
+            {"id": 2, "name": "Regional Lead", "level": 2, "description": "Access to specific regional clusters"},
+            {"id": 3, "name": "Site Head", "level": 3, "description": "Access to individual plants only"},
+            {"id": 4, "name": "External Auditor", "level": 4, "description": "View-only compliance access"},
+        ]
+        from sqlalchemy import delete
+        # Senior Developer Choice: Refresh roles for migration
+        for role in roles_data:
+            stmt = select(Role).where(Role.id == role["id"])
+            existing = (await db.execute(stmt)).scalar()
+            if not existing:
+                db.add(Role(**role))
+            else:
+                existing.level = role["level"] # Upgrade existing
+                existing.description = role["description"]
+        
+        await db.commit()
+
+        # 2. Seed Plants
         plants_data = [
             {"name": "Pattikonda Solar Plant", "code": "PKD", "region": "Andhra Pradesh", "location_lat": 15.4200, "location_lng": 77.4100},
             {"name": "Hindupur Solar Plant", "code": "HNP", "region": "Andhra Pradesh", "location_lat": 13.8200, "location_lng": 77.4900},
