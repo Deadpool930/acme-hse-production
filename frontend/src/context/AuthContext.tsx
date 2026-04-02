@@ -2,7 +2,15 @@ import React, { createContext, useContext, useState, useEffect, type ReactNode }
 import { getMe, logout } from '../api/auth';
 
 interface AuthContextType {
-  user: any;
+  user: {
+    id: number;
+    email: string;
+    fullname: string;
+    role_id: number;
+    role_name: string;
+    role_level: number;
+    region?: string;
+  } | null;
   isAuthenticated: boolean | null;
   login: (userData: any) => void;
   handleLogout: () => void;
